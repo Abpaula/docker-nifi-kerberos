@@ -13,6 +13,8 @@ configure_common() {
   sed -i 's/\.\/database_repository/\/databaserepo/g' $NIFI_HOME/conf/nifi.properties
   sed -i 's/\.\/provenance_repository/\/provenancerepo/g' $NIFI_HOME/conf/nifi.properties
 
+  sed -i 's/nifi\.zookeeper\.connect\.string=.*$/nifi\.zookeeper\.connect\.string=${NIFI_ZOOKEEPER}/g' $NIFI_HOME/conf/nifi.properties
+
   sed -i "s/nifi\.ui\.banner\.text=.*$/nifi.ui.banner.text=${NIFI_UI_BANNER_TEXT}/g" $NIFI_HOME/conf/nifi.properties
 
   # configure heap size and GC use
@@ -23,7 +25,8 @@ configure_common() {
   # add kerberos config
   sed -i 's/nifi\.kerberos\.krb5\.file=.*$/nifi\.kerberos\.krb5\.file=\/etc\/krb5.conf/g' $NIFI_HOME/conf/nifi.properties
   sed -i 's/nifi\.security\.user\.credential\.cache\.duration=24 hours/nifi\.security\.user\.credential\.cache\.duration=12 hours/g' $NIFI_HOME/conf/nifi.properties
-  sed -i "s/dn=\"\"/dn=\"${NIFI_ADMIN}\"/g" $NIFI_HOME/conf/authorized-users.xml
+  
+  sed -i "s/<property name=\"Initial Admin Identity\"><\/property>/<property name=\"Initial Admin Identity\">${NIFI_ADMIN}<\/property>/g" $NIFI_HOME/conf/authorizers.xml
 }
 
 configure_site2site() {
@@ -32,6 +35,7 @@ configure_site2site() {
   sed -i "s/nifi\.remote\.input\.socket\.port=.*$/nifi.remote.input.socket.port=12345/g" $NIFI_HOME/conf/nifi.properties
   # unsecure for now so we don't complicate the setup with certificates
   sed -i "s/nifi\.remote\.input\.secure=true/nifi.remote.input.secure=false/g" $NIFI_HOME/conf/nifi.properties
+  sed -i "s/nifi\.remote\.input\.http\.enabled=true.*$/nifi\.remote\.input\.http\.enabled=false/g" $NIFI_HOME/conf/nifi.properties
 }
 
 configure_cluster_node() {
