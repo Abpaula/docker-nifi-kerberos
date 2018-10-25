@@ -19,8 +19,8 @@ RUN cd /tmp/ && \
 
 # COPY krb5.conf /etc/krb5.conf # mount from host instead, can add here if needed
 
-ARG        DIST=https://public-repo-1.hortonworks.com/HDF/3.0.1.0/nifi-1.2.0.3.0.1.0-43-bin.tar.gz
-ARG        VERSION=1.2.0.3.0.1.0-43
+ARG        DIST=http://public-repo-1.hortonworks.com/HDF/3.2.0.0/nifi-1.7.0.3.2.0.0-520-bin.tar.gz
+ARG        VERSION=1.7.0.3.2.0.0-520
 ENV        HDF_HOME=/opt/hdf
 RUN        mkdir -p ${HDF_HOME} && \
            curl ${DIST} | tar xvz -C ${HDF_HOME} && \
