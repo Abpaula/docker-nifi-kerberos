@@ -1,43 +1,21 @@
-FROM java:8-jre
-MAINTAINER Wade Schulz / Adapted from xemuliam/hdf-base
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get -qqy update && apt-get -qqy install \
-		curl \
-        krb5-user \
-        python \
-        unzip \
-        vim
-
-# download Java Cryptography Extension
-RUN cd /tmp/ && \
-    curl -LO "http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip" -H 'Cookie: oraclelicense=accept-securebackup-cookie' && \
-    unzip jce_policy-8.zip && \
-    rm jce_policy-8.zip && \
-    yes |cp /tmp/UnlimitedJCEPolicyJDK8/*.jar /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/
-
-# COPY krb5.conf /etc/krb5.conf # mount from host instead, can add here if needed
-
-ARG        DIST=http://public-repo-1.hortonworks.com/HDF/3.2.0.0/nifi-1.7.0.3.2.0.0-520-bin.tar.gz
-ARG        VERSION=1.7.0.3.2.0.0-520
-ENV        HDF_HOME=/opt/hdf
-RUN        mkdir -p ${HDF_HOME} && \
-           curl ${DIST} | tar xvz -C ${HDF_HOME} && \
-           mv ${HDF_HOME}/nifi-${VERSION}/* ${HDF_HOME} && \
-           rm -rf ${HDF_HOME}/nifi-${VERSION} && \
-           rm -rf nifi-${VERSION}-bin.tar.gz
+FROM       alpine
+MAINTAINER Viacheslav Kalashnikov <xemuliam@gmail.com>
+ARG        DIST_MIRROR=http://archive.apache.org/dist/nifi
+ARG        VERSION=1.7.1
+ENV        NIFI_HOME=/opt/nifi \
+           JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk \
+           PATH=$PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
+RUN        apk add --no-cache bash curl openjdk8 && \
+           mkdir -p ${NIFI_HOME} && \
+           curl ${DIST_MIRROR}/${VERSION}/nifi-${VERSION}-bin.tar.gz | tar xvz -C ${NIFI_HOME} && \
+           mv ${NIFI_HOME}/nifi-${VERSION}/* ${NIFI_HOME} && \
+           rm -rf ${NIFI_HOME}/nifi-${VERSION} && \
+           rm -rf *.tar.gz
 EXPOSE     8080 8081 8443
-VOLUME     ${HDF_HOME}/logs \
-           ${HDF_HOME}/flowfile_repository \
-           ${HDF_HOME}/database_repository \
-           ${HDF_HOME}/content_repository \
-           ${HDF_HOME}/provenance_repository
-WORKDIR    ${HDF_HOME}
-
-COPY authority-providers.xml /opt/hdf/conf/authority-providers.xml
-COPY authorized-users.xml /opt/hdf/conf/authorized-users.xml
-COPY login-identity-providers.xml /opt/hdf/conf/login-identity-providers.xml
-COPY run.sh /opt/hdf/run.sh
-RUN chmod +x /opt/hdf/run.sh
-CMD ./run.sh
+VOLUME     ${NIFI_HOME}/logs \
+           ${NIFI_HOME}/flowfile_repository \
+           ${NIFI_HOME}/database_repository \
+           ${NIFI_HOME}/content_repository \
+           ${NIFI_HOME}/provenance_repository
+WORKDIR    ${NIFI_HOME}
+CMD        ./bin/nifi.sh run
